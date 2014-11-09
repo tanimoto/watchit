@@ -43,7 +43,7 @@ options :: Parser Options
 options = Options
   <$> strOption
       ( long "path"
-     <> metavar "DIRECTORY"
+     <> metavar "PATH"
      <> help "Directory to watch")
   <*> strOption
       ( long "command"
@@ -55,5 +55,5 @@ fullOptions :: ParserInfo Options
 fullOptions =
   info (helper <*> options)
     ( fullDesc
-   <> progDesc "Print"
-   <> header "hello" )
+   <> progDesc "Run a COMMAND whenever there's a change in directory PATH"
+   <> header "watchit - watch a directory and run a command on changes" )
