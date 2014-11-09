@@ -43,6 +43,7 @@ Executable watchit
     -- , pipes                          >=      4.1      && <      5.0
     , process
     , optparse-applicative           >=      0.11     && <      1.0
+    , resource-pool                  >=      0.2      && <      1.0
     , streaming-commons              >=      0.1      && <      1.0
     , system-filepath                >=      0.3      && <      1.0
     , system-fileio                  >=      0.3      && <      1.0
