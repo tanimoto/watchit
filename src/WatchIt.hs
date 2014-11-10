@@ -28,13 +28,37 @@ import           Control.Monad             (forever, void)
 import           Data.Pool                 (Pool (..), createPool, tryWithResource)
 import           Data.Streaming.Process    (Inherited (..), shell, streamingProcess,
                                            waitForStreamingProcess)
+import qualified Data.Text                 as Text
 
 import           Filesystem.Path.CurrentOS as FS
 
 import           Options.Applicative       (execParser)
 
-import           System.FSNotify           (Event (..), eventPath, watchTree,
+import           System.FSNotify           (eventPath, watchDir, watchTree,
                                            withManager)
+
+
+-------------------------------------------------------------------------------
+-- Data Types
+-------------------------------------------------------------------------------
+
+data Config = Config
+  { configPath :: FS.FilePath
+  , configFilter :: FS.FilePath -> Bool
+  , configAction :: FS.FilePath -> IO ()
+  , configNumJobs :: Int
+  , configRecur :: Bool
+  }
+
+
+defaultConfig :: Config
+defaultConfig = Config
+  { configPath = "."
+  , configFilter = const True
+  , configAction = printFile
+  , configNumJobs = 1
+  , configRecur = True
+  }
 
 
 -------------------------------------------------------------------------------
@@ -43,51 +67,58 @@ import           System.FSNotify           (Event (..), eventPath, watchTree,
 
 defaultMain :: IO ()
 defaultMain = do
-  execParser fullOptions >>= watchIt
+  options <- execParser infoOptions
+  watchIt $ parseConfig options
 
 
-watchIt :: Options -> IO ()
-watchIt opts = do
-  let path = decodeString $ optionsPath opts
-  let cmd = optionsCmd opts
+parseConfig :: Options -> Config
+parseConfig options = Config
+  { configPath = withDef configPath optionsPath decodeString
+  , configFilter = withDef configFilter optionsExt
+                   (flip hasExtension . Text.pack)
+  , configAction = withDef configAction optionsCmd (const . run)
+  , configNumJobs = withDef configNumJobs optionsNumJobs read
+  , configRecur = withDef configRecur optionsNotRec not
+  }
+  where
+  withDef conf opt f = maybe (conf defaultConfig) f (opt options)
 
-  -- Worker Pool
-  pool <- createWorkerPool
+
+watchIt :: Config -> IO ()
+watchIt config = do
+  -- Set up Config
+  let path = configPath config
+  let filterEvent = configFilter config . eventPath
+  let numJobs = configNumJobs config
+  pool <- createWorkerPool numJobs
+  let handleEvent = withPool pool (configAction config) . eventPath
+  let watch = if configRecur config then watchTree else watchDir
 
   -- Watch it
   putStrLn "watchit started..."
   withManager $ \man -> do
-    void $ watchTree man path
+    void $ watch man path
       filterEvent
-      (handleEvent pool cmd)
+      handleEvent
     forever $ threadDelay longDelay
   where
   longDelay = 12 * 3600 * 10000  -- maxBound
 
 
-filterEvent :: Event -> Bool
-filterEvent event = do
-  let file = eventPath event
-  let ext = "hs"
-  hasExtension file ext
+withPool :: Pool a -> (FS.FilePath -> IO ()) -> FS.FilePath -> IO ()
+withPool pool f file = do
+  void $ tryWithResource pool (const $ f file)
 
 
-handleEvent :: Pool a -> String -> Event -> IO ()
-handleEvent pool cmd _ = do
-  void $ tryWithResource pool $ const
-       $ run cmd
-
-
-createWorkerPool :: IO (Pool ())
-createWorkerPool =
+createWorkerPool :: Int -> IO (Pool ())
+createWorkerPool stripes =
   createPool
     (return ())
     (const $ return ())
-    stripes timeLeftOpen resPerStripe
+    stripes timeLeftOpen numPerStripe
   where
-  stripes = 1
   timeLeftOpen = 1
-  resPerStripe = 1
+  numPerStripe = 1
 
 
 run :: String -> IO ()
@@ -98,3 +129,7 @@ run cmd = do
     streamingProcess (shell cmd)
   status <- waitForStreamingProcess handle
   print status
+
+
+printFile :: FS.FilePath -> IO ()
+printFile = putStrLn . encodeString
