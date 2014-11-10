@@ -18,14 +18,42 @@ Source-Repository head
 
 
 -------------------------------------------------------------------------------
+Library
+  Hs-Source-Dirs:
+    src
+
+  Exposed-Modules:
+    WatchIt
+    WatchIt.Options
+    WatchIt.Types
+
+  Build-Depends:
+      base                           >=      4.0      && <      5.0
+    , fsnotify                       >=      0.1      && <      1.0
+    , optparse-applicative           >=      0.11     && <      1.0
+    , process                        >=      1.1      && <      2.0
+    , resource-pool                  >=      0.2      && <      1.0
+    , streaming-commons              >=      0.1      && <      1.0
+    , system-filepath                >=      0.3      && <      1.0
+    , text                           >=      1.1      && <      2.0
+
+  Ghc-Options:
+    -Wall
+    -O2
+    -threaded
+    -with-rtsopts=-N
+    -rtsopts
+
+  Default-Language: Haskell2010
+
+
+-------------------------------------------------------------------------------
 Executable watchit
   Hs-Source-Dirs:
     src
 
   Main-is:
     Main.hs
-
-  Other-Modules:
 
   Build-Depends:
       base                           >=      4.0      && <      5.0
@@ -61,6 +89,10 @@ Test-Suite Tests
   Build-Depends:
       watchit
     , base                           >=      4.0      && <      5.0
+    , bytestring
+    , async                          >=      2.0      && <      3.0
+    , system-fileio                  >=      0.3      && <      1.0
+    , system-filepath                >=      0.3      && <      1.0
     , Cabal
     , HUnit
     , QuickCheck

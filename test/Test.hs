@@ -14,25 +14,25 @@
 module Main where
 
 -------------------------------------------------------------------------------
--- Imports
--------------------------------------------------------------------------------
 
 import           WatchIt
+import           WatchIt.Types
 
-import           Test.Tasty
-import qualified Test.Tasty.SmallCheck     as SC
-import qualified Test.Tasty.QuickCheck     as QC
+import qualified Data.ByteString           as B
+import           Control.Concurrent
+import           Control.Concurrent.Async
+import qualified Filesystem                as FS
+
+import           Test.Tasty                as Tasty
+-- import qualified Test.Tasty.SmallCheck     as SC
+-- import qualified Test.Tasty.QuickCheck     as QC
 import           Test.Tasty.HUnit
 
 -------------------------------------------------------------------------------
--- Main
--------------------------------------------------------------------------------
 
 main :: IO ()
-main = defaultMain testSuite
+main = Tasty.defaultMain testSuite
 
--------------------------------------------------------------------------------
--- Test Suite
 -------------------------------------------------------------------------------
 
 testSuite :: TestTree
@@ -42,23 +42,33 @@ testSuite = testGroup "Test Suite"
   ]
 
 -------------------------------------------------------------------------------
--- Properties
--------------------------------------------------------------------------------
 
 props :: TestTree
 props = testGroup "Properties"
-  [ QC.testProperty "id" $
-      \n -> (n::Int) == id n
+  [
   ]
 
--------------------------------------------------------------------------------
--- Unit Tests
 -------------------------------------------------------------------------------
 
 units :: TestTree
 units = testGroup "Unit Tests"
-  [ testCase "Factorial of 0 is 1" $
-    fact 0 == 1 @?= True
-  , testCase "Factorial of 5 is 120" $
-    fact 5 == 120 @?= True
+  [ testCase "Watching should notify of a file change" $ do
+      let path = "tmp"
+      mvar <- newEmptyMVar
+
+      let config = defaultConfig
+                   { configPath = path
+                   , configAction = \_ -> putMVar mvar ()
+                   }
+      watcher <- async $ watchIt config
+
+      FS.createDirectory True path
+      FS.writeFile "tmp/test" B.empty
+
+      threadDelay (3*1000*1000)
+
+      actual <- tryReadMVar mvar
+      cancel watcher
+
+      assertEqual "" (Just ()) actual
   ]

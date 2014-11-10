@@ -13,6 +13,7 @@
 
 module WatchIt
   ( defaultMain
+  , watchIt
   ) where
 
 
