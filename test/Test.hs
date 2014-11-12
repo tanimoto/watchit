@@ -19,9 +19,13 @@ import           WatchIt
 import           WatchIt.Types
 
 import qualified Data.ByteString           as B
+
 import           Control.Concurrent
 import           Control.Concurrent.Async
+import           Control.Exception         (bracket)
+
 import qualified Filesystem                as FS
+import qualified Filesystem.Path.CurrentOS as FS
 
 import           Test.Tasty                as Tasty
 -- import qualified Test.Tasty.SmallCheck     as SC
@@ -37,38 +41,53 @@ main = Tasty.defaultMain testSuite
 
 testSuite :: TestTree
 testSuite = testGroup "Test Suite"
-  [ props
-  , units
+  [ properties
+  , unitTests
+  , integrationTests
   ]
 
 -------------------------------------------------------------------------------
 
-props :: TestTree
-props = testGroup "Properties"
+properties :: TestTree
+properties = testGroup "Properties"
   [
   ]
 
 -------------------------------------------------------------------------------
 
-units :: TestTree
-units = testGroup "Unit Tests"
-  [ testCase "Watching should notify of a file change" $ do
-      let path = "tmp"
-      mvar <- newEmptyMVar
-
-      let config = defaultConfig
-                   { configPath = path
-                   , configAction = \_ -> putMVar mvar ()
-                   }
-      watcher <- async $ watchIt config
-
-      FS.createDirectory True path
-      FS.writeFile "tmp/test" B.empty
-
-      threadDelay (3*1000*1000)
-
-      actual <- tryReadMVar mvar
-      cancel watcher
-
-      assertEqual "" (Just ()) actual
+unitTests :: TestTree
+unitTests = testGroup "Unit Tests"
+  [
   ]
+
+-------------------------------------------------------------------------------
+
+integrationTests :: TestTree
+integrationTests = testGroup "Integration Tests"
+  [ testWatchFileAdded
+  ]
+
+
+testWatchFileAdded :: TestTree
+testWatchFileAdded =
+  testCase "Watching should receive notification of a file change" $ do
+    actual <- bracket acquire release between
+    assertEqual "" (Just ()) actual
+  where
+  acquire = do
+    let path = "dist/tmp"
+    FS.createTree path
+    return path
+  release path = do
+    FS.removeTree path
+  between path = do
+    mvar <- newEmptyMVar
+    let config = defaultConfig
+         { configPath = path
+         , configAction = \_ -> putMVar mvar ()
+         }
+    withAsync (watchIt config) $ \_ -> do
+      FS.writeFile (path FS.</> "tmp") B.empty
+      threadDelay timeoutDelay
+      tryReadMVar mvar
+  timeoutDelay = 3*1000*1000
