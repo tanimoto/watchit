@@ -66,7 +66,7 @@ parseOptions = Options
   <*> optional (switch
       ( long "force"
      <> short 'f'
-     <> help "Force command to run"))
+     <> help "Force command to run right away"))
   <*> optional (option auto
       ( long "num-jobs"
      <> short 'j'
@@ -81,5 +81,5 @@ infoOptions :: ParserInfo Options
 infoOptions =
   info (helper <*> parseOptions)
     ( fullDesc
-   <> progDesc "Run a COMMAND whenever there's a change in directory PATH"
-   <> header "watchit - watch a directory and run a command on changes" )
+   <> progDesc "Watch a directory and run a command whenever a file changes"
+   <> header "watchit" )
