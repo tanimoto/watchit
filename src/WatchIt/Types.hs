@@ -27,6 +27,7 @@ data Config = Config
   { configPath :: FS.FilePath
   , configFilter :: FS.FilePath -> Bool
   , configAction :: FS.FilePath -> IO ()
+  , configForce :: Bool
   , configNumJobs :: Int
   , configRecur :: Bool
   }
@@ -39,6 +40,7 @@ defaultConfig = Config
   { configPath = "."
   , configFilter = const True
   , configAction = printFile
+  , configForce = False
   , configNumJobs = 1
   , configRecur = True
   }

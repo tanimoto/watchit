@@ -29,6 +29,7 @@ data Options = Options
   { optionsPath :: Maybe String
   , optionsExt :: Maybe String
   , optionsCmd :: Maybe String
+  , optionsForce :: Maybe Bool
   , optionsNumJobs :: Maybe Int
   , optionsNotRec :: Maybe Bool
   }
@@ -42,6 +43,7 @@ defaultOptions = Options
   { optionsPath = Nothing
   , optionsExt = Nothing
   , optionsCmd = Nothing
+  , optionsForce = Nothing
   , optionsNumJobs = Nothing
   , optionsNotRec = Nothing
   }
@@ -61,6 +63,10 @@ parseOptions = Options
       ( long "command"
      <> metavar "COMMAND"
      <> help "Command to run"))
+  <*> optional (switch
+      ( long "force"
+     <> short 'f'
+     <> help "Force command to run"))
   <*> optional (option auto
       ( long "num-jobs"
      <> short 'j'

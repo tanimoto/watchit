@@ -23,7 +23,7 @@ import           WatchIt.Options
 import           WatchIt.Types
 
 import           Control.Concurrent        (threadDelay)
-import           Control.Monad             (forever, void)
+import           Control.Monad             (forever, void, when)
 
 import           Data.Pool                 (Pool (..), createPool, tryWithResource)
 import           Data.Streaming.Process    (Inherited (..), shell, streamingProcess,
@@ -54,6 +54,7 @@ parseConfig options = Config
   , configFilter = withDef configFilter optionsExt
                    (flip FS.hasExtension . Text.pack)
   , configAction = withDef configAction optionsCmd (const . run)
+  , configForce = withDef configForce optionsForce id
   , configNumJobs = withDef configNumJobs optionsNumJobs id
   , configRecur = withDef configRecur optionsNotRec not
   }
@@ -68,13 +69,16 @@ watchIt config = do
   let filterEvent = configFilter config . eventPath
   let numJobs = configNumJobs config
   pool <- createWorkerPool numJobs
-  let handleEvent = withPool pool (configAction config) . eventPath
+  let action = configAction config
+  let handleEvent = withPool pool action . eventPath
+  let forced = configForce config
   let watch = if configRecur config then watchTree else watchDir
   let longDelay = 12 * 3600 * 10000  -- maxBound
 
   -- Watch it
   putStrLn "watchit started..."
   withManager $ \man -> do
+    when forced $ action FS.empty
     void $ watch man path
       filterEvent
       handleEvent
