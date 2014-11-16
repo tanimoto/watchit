@@ -28,10 +28,10 @@ import           Options.Applicative
 data Options = Options
   { optionsPath :: Maybe String
   , optionsExt :: Maybe String
-  , optionsCmd :: Maybe String
   , optionsForce :: Maybe Bool
   , optionsNumJobs :: Maybe Int
   , optionsNotRec :: Maybe Bool
+  , optionsCmd :: Maybe String
   }
   deriving (Eq, Show)
 
@@ -42,10 +42,10 @@ defaultOptions :: Options
 defaultOptions = Options
   { optionsPath = Nothing
   , optionsExt = Nothing
-  , optionsCmd = Nothing
   , optionsForce = Nothing
   , optionsNumJobs = Nothing
   , optionsNotRec = Nothing
+  , optionsCmd = Nothing
   }
 
 
@@ -59,10 +59,6 @@ parseOptions = Options
       ( long "extension"
      <> metavar "EXTENSION"
      <> help "File extension to watch"))
-  <*> optional (strOption
-      ( long "command"
-     <> metavar "COMMAND"
-     <> help "Command to run"))
   <*> optional (switch
       ( long "force"
      <> short 'f'
@@ -75,6 +71,9 @@ parseOptions = Options
   <*> optional (switch
       ( long "not-recursive"
      <> help "Do not watch directory recursively"))
+  <*> optional (argument str
+      ( metavar "COMMAND"
+     <> help "Command to run"))
 
 
 infoOptions :: ParserInfo Options
