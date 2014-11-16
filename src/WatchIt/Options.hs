@@ -29,7 +29,7 @@ data Options = Options
   { optionsPath :: Maybe String
   , optionsExt :: Maybe String
   , optionsCmd :: Maybe String
-  , optionsNumJobs :: Maybe String
+  , optionsNumJobs :: Maybe Int
   , optionsNotRec :: Maybe Bool
   }
   deriving (Eq, Show)
@@ -61,7 +61,7 @@ parseOptions = Options
       ( long "command"
      <> metavar "COMMAND"
      <> help "Command to run"))
-  <*> optional (strOption
+  <*> optional (option auto
       ( long "num-jobs"
      <> short 'j'
      <> metavar "JOBS"

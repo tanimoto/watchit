@@ -54,7 +54,7 @@ parseConfig options = Config
   , configFilter = withDef configFilter optionsExt
                    (flip FS.hasExtension . Text.pack)
   , configAction = withDef configAction optionsCmd (const . run)
-  , configNumJobs = withDef configNumJobs optionsNumJobs read
+  , configNumJobs = withDef configNumJobs optionsNumJobs id
   , configRecur = withDef configRecur optionsNotRec not
   }
   where
