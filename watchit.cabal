@@ -1,12 +1,12 @@
 Name:                watchit
 Version:             0.1.0.0
-Synopsis:
-Description:
+Synopsis:            File change watching utility
+Description:         Watch a directory and run a command whenever a file changes.
 License:             BSD3
 License-File:        LICENSE
 Author:              Paulo Tanimoto
 Maintainer:          ptanimoto@gmail.com
-Category:
+Category:            Development
 Build-Type:          Simple
 Cabal-version:       >= 1.10
 
@@ -39,10 +39,6 @@ Library
 
   Ghc-Options:
     -Wall
-    -O2
-    -threaded
-    -with-rtsopts=-N
-    -rtsopts
 
   Default-Language: Haskell2010
 
