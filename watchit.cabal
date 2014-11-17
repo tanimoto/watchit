@@ -63,9 +63,7 @@ Executable watchit
 
   Ghc-Options:
     -Wall
-    -O2
     -threaded
-    -with-rtsopts=-N
     -rtsopts
 
   Default-Language: Haskell2010
