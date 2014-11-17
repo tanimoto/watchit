@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE BangPatterns #-}
 
 -------------------------------------------------------------------------------
 -- |
@@ -99,7 +98,7 @@ createWorkerPool stripes =
 
 
 withPool :: Pool a -> (FS.FilePath -> IO ()) -> FS.FilePath -> IO ()
-withPool pool f file = do
+withPool pool f file =
   void $ tryWithResource pool $ const $ f file
 
 
