@@ -1,5 +1,7 @@
 # watchit
 
+[![Build Status](https://travis-ci.org/tanimoto/watchit.svg?branch=master)](https://travis-ci.org/tanimoto/watchit)
+
 Watch a directory and run a command whenever a file changes.
 
 
