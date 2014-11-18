@@ -72,4 +72,4 @@ Available options:
 
 ## Authors
 
-- Paulo Tanimoto <ptanimoto@gmail.com>
+- Paulo Tanimoto
