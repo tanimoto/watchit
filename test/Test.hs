@@ -20,7 +20,8 @@ import           WatchIt.Types
 
 import qualified Data.ByteString           as B
 
-import           Control.Concurrent        (newEmptyMVar, readMVar, putMVar)
+import           Control.Concurrent        (newEmptyMVar, readMVar, putMVar,
+                                            threadDelay)
 import           Control.Concurrent.Async  (withAsync)
 import           Control.Exception         (bracket)
 
@@ -30,8 +31,6 @@ import qualified Filesystem.Path.CurrentOS as FS
 import           System.Timeout            (timeout)
 
 import           Test.Tasty                as Tasty
--- import qualified Test.Tasty.SmallCheck     as SC
--- import qualified Test.Tasty.QuickCheck     as QC
 import           Test.Tasty.HUnit
 
 -------------------------------------------------------------------------------
@@ -89,7 +88,7 @@ testWatchFileAdded =
          , configAction = \_ -> putMVar mvar ()
          }
     withAsync (watchIt config) $ \_ -> do
-      FS.writeFile (path FS.</> "tmp") B.empty
-      timeout timeoutDelay $ do
+      threadDelay (1*1000*1000)
+      FS.writeFile (path FS.</> "test") B.empty
+      timeout (15*1000*1000) $ do
         readMVar mvar
-  timeoutDelay = 30*1000*1000
